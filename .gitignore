@@ -1,5 +1,6 @@
 src/vendor
 myvenv/
+*.ankiaddon
 
 # Everything below is from the GitHub default Python .gitignore
 
