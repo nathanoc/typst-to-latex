@@ -2,16 +2,17 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), "vendor"))
 
-from aqt import mw
-from aqt.utils import showInfo, qconnect
+from aqt.utils import showInfo
 from aqt.qt import *
 from anki.hooks import addHook
-from aqt.editor_legacy import Editor
+
+# Was using this for type hints, but seems like some Anki installations don't have aqt.editor_legacy
+# from aqt.editor_legacy import Editor
 
 import re
 import pypandoc
 
-def onButtonPress(editor: Editor):
+def onButtonPress(editor):
     if editor.currentField is None:
         showInfo("You need to select a field")
         return
@@ -28,7 +29,7 @@ def onButtonPress(editor: Editor):
     editor.note[current_field] = new_note_text
     editor.setNote(editor.note)
 
-def addMyButton(buttons, editor: Editor):
+def addMyButton(buttons, editor):
     editor._links["convert"] = onButtonPress
     return buttons + [editor.addButton(
         None,
