@@ -23,6 +23,7 @@ def onButtonPress(editor):
     current_field = field_names[editor.currentField]
 
     # We first convert from HTML to plaintext (which will be valid Typst code), and then convert from Typst to LaTeX.
+    # TODO: Error handling
     new_note_text = re.sub(r"\$.*?\$",
                            lambda match: pypandoc.convert_text(
                                pypandoc.convert_text(match.group(0), "plain", "html"),
