@@ -1,0 +1,22 @@
+from aqt import QDialog, QFontDatabase, QPushButton, QTextEdit, QVBoxLayout
+
+class PreambleEditDialog(QDialog):
+    def __init__(self, parent = None, preamble: str = ""):
+        QDialog.__init__(self, parent)
+
+        self.resize(500, 500)
+        self.setWindowTitle("Preamble editor")
+
+        self.input = QTextEdit()
+        self.input.setFont(QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont))
+        self.input.setText(preamble)
+
+        save_btn = QPushButton("Save")
+        save_btn.clicked.connect(self.accept)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.input)
+        layout.addWidget(save_btn)
+
+        self.setLayout(layout)
+    

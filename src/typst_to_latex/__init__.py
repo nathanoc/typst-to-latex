@@ -2,6 +2,7 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), "vendor"))
 
+from aqt import mw
 from aqt.utils import showInfo
 from aqt.qt import *
 from anki.hooks import addHook
@@ -12,7 +13,21 @@ from anki.hooks import addHook
 import re
 import pypandoc
 
-def onButtonPress(editor):
+from pathlib import Path
+
+from .preamble_edit_dialog import PreambleEditDialog
+
+config = mw.addonManager.getConfig(__name__) or {
+    "preamble": "user_files/preamble.typ"
+}
+
+def get_preamble():
+    return Path(os.path.join(os.path.dirname(__file__), config["preamble"])).read_text()
+
+def prepend_preamble(text):
+    return f"{get_preamble()}\n\n{text}"
+
+def onReplacePress(editor):
     if editor.currentField is None:
         showInfo("You need to select a field")
         return
@@ -26,7 +41,7 @@ def onButtonPress(editor):
     # TODO: Error handling
     new_note_text = re.sub(r"\$.*?\$",
                            lambda match: pypandoc.convert_text(
-                               pypandoc.convert_text(match.group(0), "plain", "html"),
+                               prepend_preamble(pypandoc.convert_text(match.group(0), "plain", "html")),
                                "latex",
                                "typst"),
                            editor.note[current_field])
@@ -34,13 +49,36 @@ def onButtonPress(editor):
     editor.note[current_field] = new_note_text
     editor.setNote(editor.note)
 
-def addMyButton(buttons, editor):
-    editor._links["convert"] = onButtonPress
+def addReplaceButton(buttons, editor):
+    editor._links["convert"] = onReplacePress
     return buttons + [editor.addButton(
         None,
         "convert",
-        onButtonPress,
+        onReplacePress,
         "Convert Typst to LaTeX",
         "Typst to LaTeX")]
 
-addHook("setupEditorButtons", addMyButton)
+def onPreamblePress(editor):
+    preamble_settings = PreambleEditDialog(preamble = get_preamble())
+    full_preamble_path = Path(
+        os.path.join(os.path.dirname(__file__), config["preamble"])
+    )
+
+    if preamble_settings.exec():
+        input = preamble_settings.input.toPlainText()
+        with open(full_preamble_path, "w") as f:
+            f.write(input)
+            f.flush()
+
+def addPreambleButton(buttons, editor):
+    editor._links["preamble"] = onPreamblePress
+    return buttons + [editor.addButton(
+        None,
+        "preamble",
+        onPreamblePress,
+        "Edit preamble",
+        "Preamble"
+    )]
+
+addHook("setupEditorButtons", addReplaceButton)
+addHook("setupEditorButtons", addPreambleButton)
