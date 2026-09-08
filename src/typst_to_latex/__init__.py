@@ -29,7 +29,7 @@ def prepend_preamble(text):
 
 def onReplacePress(editor):
     if editor.currentField is None:
-        showInfo("You need to select a field")
+        showInfo("Please select the field (e.g. \"Front\") containing the code to convert.")
         return
     
     # Find current field by comparing note fields against editor.currentField
@@ -37,17 +37,20 @@ def onReplacePress(editor):
     field_names = [f["name"] for f in fields]
     current_field = field_names[editor.currentField]
 
-    # We first convert from HTML to plaintext (which will be valid Typst code), and then convert from Typst to LaTeX.
-    # TODO: Error handling
-    new_note_text = re.sub(r"\$.*?\$",
-                           lambda match: pypandoc.convert_text(
-                               prepend_preamble(pypandoc.convert_text(match.group(0), "plain", "html")),
-                               "latex",
-                               "typst"),
-                           editor.note[current_field])
+    try:
+        # We first convert from HTML to plaintext (which will be valid Typst code), and then convert from Typst to LaTeX.
+        new_note_text = re.sub(r"\$.*?\$",
+                            lambda match: pypandoc.convert_text(
+                                prepend_preamble(pypandoc.convert_text(match.group(0), "plain", "html")),
+                                "latex",
+                                "typst"),
+                            editor.note[current_field])
 
-    editor.note[current_field] = new_note_text
-    editor.setNote(editor.note)
+        editor.note[current_field] = new_note_text
+        editor.setNote(editor.note)
+    except RuntimeError as err:
+        error_info = f"<p>An error occurred while converting your Typst code. This may be because your code has issues, or it may be due to a bug in the Typst to LaTeX add-on.</p><p>Error details:</p><code>{str(err)}</code><p>Note: some error messages may suggest installing TinyTeX. <i>You do not need to do this.</i></p></details>"
+        showInfo(error_info, type="warning", title="Typst to LaTeX")
 
 def addReplaceButton(buttons, editor):
     editor._links["convert"] = onReplacePress
