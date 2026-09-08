@@ -5,7 +5,7 @@ class PreambleEditDialog(QDialog):
         QDialog.__init__(self, parent)
 
         self.resize(500, 500)
-        self.setWindowTitle("Preamble editor")
+        self.setWindowTitle("Typst to LaTeX preamble editor")
 
         self.input = QTextEdit()
         self.input.setFont(QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont))
