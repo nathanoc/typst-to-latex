@@ -10,16 +10,17 @@ from anki.hooks import addHook
 # Was using this for type hints, but seems like some Anki installations don't have aqt.editor_legacy
 # from aqt.editor_legacy import Editor
 
+import logging
 import re
-import pypandoc
 
 from pathlib import Path
 
 from .preamble_edit_dialog import PreambleEditDialog
+from .pandoc_missing_dialog import PandocMissingDialog
 
-config = mw.addonManager.getConfig(__name__) or {
-    "preamble": "user_files/preamble.typ"
-}
+config = mw.addonManager.getConfig(__name__)
+
+import pypandoc
 
 def get_preamble():
     return Path(os.path.join(os.path.dirname(__file__), config["preamble"])).read_text()
@@ -36,6 +37,12 @@ def onReplacePress(editor):
     fields = editor.note.col.models.current()["flds"]
     field_names = [f["name"] for f in fields]
     current_field = field_names[editor.currentField]
+
+    try:
+        pandoc_path = pypandoc.get_pandoc_path()
+        pypandoc.__pandoc_path
+    except OSError:
+        error_info = f"<p>"
 
     try:
         # We first convert from HTML to plaintext (which will be valid Typst code), and then convert from Typst to LaTeX.
@@ -85,3 +92,20 @@ def addPreambleButton(buttons, editor):
 
 addHook("setupEditorButtons", addReplaceButton)
 addHook("setupEditorButtons", addPreambleButton)
+
+# Suppresses pypandoc logging, as Anki sometimes incorrectly treats this as an error
+logging.getLogger("pypandoc").addHandler(logging.NullHandler())
+
+try:
+    pypandoc.get_pandoc_version()
+except OSError:
+    if config["pandoc_path"] != "":
+        os.environ.setdefault("PYPANDOC_PANDOC", config["pandoc_path"])
+        try:
+            pypandoc.get_pandoc_path()
+        except:
+            dialog = PandocMissingDialog()
+            dialog.exec()
+    else:
+        dialog = PandocMissingDialog()
+        dialog.exec()

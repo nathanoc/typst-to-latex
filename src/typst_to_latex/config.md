@@ -1,0 +1,2 @@
+- `preamble`: The location of the preamble file. Make sure to include the filename and extension. Default: `preamble/user_files.typ`.
+- `pandoc_location`: The directory in which pandoc is installed.
