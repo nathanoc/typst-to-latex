@@ -1,2 +1,2 @@
-- `preamble`: The location of the preamble file. Make sure to include the filename and extension. Default: `preamble/user_files.typ`.
-- `pandoc_location`: The directory in which pandoc is installed.
+- `preamble`: The location of the preamble file. If modifying this, make sure to include the filename and extension, not just the directory. Default: `preamble/user_files.typ`.
+- `pandoc_path`: The directory in which pandoc is installed. This is only needed in the event that Pandoc is installed but its location is not in your `PATH` environment variable. By default, the add-on uses the first Pandoc installation it finds, which may not be the one at `pandoc_path`.
