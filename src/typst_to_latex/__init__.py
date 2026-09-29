@@ -39,12 +39,6 @@ def onReplacePress(editor):
     current_field = field_names[editor.currentField]
 
     try:
-        pandoc_path = pypandoc.get_pandoc_path()
-        pypandoc.__pandoc_path
-    except OSError:
-        error_info = f"<p>"
-
-    try:
         # We first convert from HTML to plaintext (which will be valid Typst code), and then convert from Typst to LaTeX.
         new_note_text = re.sub(r"\$.*?\$",
                             lambda match: pypandoc.convert_text(
@@ -58,6 +52,9 @@ def onReplacePress(editor):
     except RuntimeError as err:
         error_info = f"<p>An error occurred while converting your Typst code. This may be because your code has issues, or it may be due to a bug in the Typst to LaTeX add-on.</p><p>Error details:</p><code>{str(err)}</code><p>Note: some error messages may suggest installing TinyTeX. <i>You do not need to do this.</i></p></details>"
         showInfo(error_info, type="warning", title="Typst to LaTeX")
+    except OSError:
+        dialog = PandocMissingDialog()
+        dialog.exec()
 
 def addReplaceButton(buttons, editor):
     editor._links["convert"] = onReplacePress
